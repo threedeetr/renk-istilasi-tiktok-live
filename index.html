@@ -73,6 +73,7 @@ input[type=text]:focus{border-color:#75dffa}
   <p class="small"><strong>Çarpışma kuralı:</strong> Rakibine doğru daha güçlü hareket eden yuvarlak kendi rengini yayar. Toplar çarpışmadan sonra sekerek hareketine devam eder. Oyuncu adı değişmez, sadece takım rengi değişir.</p>
   <p class="small"><strong>Renk kodları:</strong> İlk 65.536 kişinin başlangıç renk kodları birbirinden farklıdır. Çarpışmalardan sonra birden fazla top aynı renge dönüşebilir. Bazı renkler gözle birbirine yakın görünebilir.</p>
   <p class="small"><strong>Gerçek yayın:</strong> GitHub/Render kurulumu ve <code>TIKTOK_USERNAME</code> ayarıyla canlı yorumlar otomatik gelir. Bağlantı olmadan bu dosya demo olarak çalışır.</p>
+  <p class="small" id="liveDebug">Bağlantı teşhisi hazırlanıyor...</p>
 </aside>
 <script>
 'use strict';
@@ -215,6 +216,17 @@ input[type=text]:focus{border-color:#75dffa}
   }catch(e){setStatus('Demo • bağlantı kurulamadı','error');}
  }
  connectEvents();
+ // Telefon üzerinden canlı bağlantı durumunu ve yorum sayaçlarını görüntüle.
+ async function updateDebug(){
+   if(location.protocol==='file:'){$('liveDebug').textContent='Teşhis: Bu dosya telefona indirilmiş yerel demo. Canlı yorum almak için Render site adresini aç.';return;}
+   try{
+     const r=await fetch('/api/health',{cache:'no-store'});
+     if(!r.ok)throw new Error('HTTP '+r.status);
+     const d=await r.json();
+     $('liveDebug').textContent='TEŞHİS • TikTok: '+(d.status==='connected'?'BAĞLI':d.status==='waiting'?'YAYIN BEKLİYOR':d.status)+' • Gelen yorum: '+(d.commentsReceived??'—')+' • Oyuna iletilen: '+(d.commentsForwarded??'—')+' • Açık oyun ekranı: '+(d.connectedScreens??'—')+(d.lastError?' • Son hata: '+d.lastError:'');
+   }catch(e){$('liveDebug').textContent='Teşhis bilgisine ulaşılamadı: '+e.message;}
+ }
+ updateDebug();setInterval(updateDebug,6500);
  $('gear').onclick=()=>{settings.classList.toggle('open');$('gear').textContent=settings.classList.contains('open')?'×':'⚙'};
  $('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(e){showToast('Tarayıcıda tam ekran kullanılamıyor',1800)}};
  function manuallyAdd(){let input=$('username'),name=input.value.trim().replace(/^@/,'');if(!name)return;addPlayer('manual:'+name.toLowerCase(),name);input.value='';updateStats()}
