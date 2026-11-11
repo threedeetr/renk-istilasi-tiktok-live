@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: renk-istilasi-tiktok-live
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: TIKTOK_USERNAME
+        sync: false

@@ -1,0 +1,9 @@
+{
+  "name": "renk-istilasi-tiktok-live",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {"start": "node server.js"},
+  "engines": {"node": ">=20"},
+  "dependencies": {"tiktok-live-connector": "2.5.0"}
+}

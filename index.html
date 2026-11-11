@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#080c1b">
+<title>Renk İstilası — TikTok LIVE</title>
+<style>
+:root{color-scheme:dark;--ink:#f5f8ff;--muted:#9facce;--panel:rgba(12,18,40,.85);--line:rgba(180,205,255,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:#060b1c;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+#field{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+.screen-grain{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 40% at 50% 35%,transparent 45%,rgba(0,0,0,.22) 100%);z-index:1}
+/* Oyun alanı gerçek anlamda tam ekran: üst başlık/bar yok. */
+.tools{position:fixed;z-index:8;top:calc(env(safe-area-inset-top) + 10px);right:calc(env(safe-area-inset-right) + 10px);display:flex;gap:8px;pointer-events:auto}
+.round{height:40px;width:40px;border-radius:13px;background:rgba(13,21,43,.75);color:#fff;border:1px solid rgba(190,206,255,.24);font-size:20px;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 5px 18px #0005;backdrop-filter:blur(6px)}
+.round:active,.btn:active{transform:scale(.96)}
+.bottom{position:fixed;z-index:4;bottom:0;left:0;right:0;padding:0 10px calc(env(safe-area-inset-bottom) + 9px);pointer-events:none;max-width:560px;margin:auto}
+.minihead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.leadtitle{font-size:10px;font-weight:900;letter-spacing:.08em;color:#c2d2f7;text-shadow:0 1px 9px #000}
+.compact-stats{display:flex;gap:5px}
+.mini-stat{background:rgba(12,18,38,.72);border:1px solid rgba(168,189,255,.15);border-radius:7px;padding:4px 6px;white-space:nowrap;color:#b8c8e8;font-size:9px;font-weight:800;backdrop-filter:blur(5px)}
+.mini-stat strong{color:#fff;font-size:11px;font-variant-numeric:tabular-nums}
+.leaders{display:flex;gap:5px}
+.team{min-width:0;flex:1;max-width:33.33%;background:rgba(13,20,41,.73);border:1px solid rgba(180,196,253,.16);border-radius:9px;padding:6px 8px;backdrop-filter:blur(6px)}
+.team-head{display:flex;gap:5px;align-items:center;min-width:0}
+.team-swatch{height:9px;width:9px;flex:0 0 auto;border-radius:50%}
+.team-name{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;color:#dce7ff}
+.team-num{font-weight:900;font-size:16px;margin-top:2px;font-variant-numeric:tabular-nums}
+.team-bar{margin-top:4px;background:rgba(255,255,255,.08);height:3px;border-radius:5px;overflow:hidden}.team-bar div{height:100%;border-radius:5px}
+.status{margin-top:4px;display:inline-flex;gap:5px;align-items:center;font-size:9px;color:#bacbed;font-weight:700;padding:3px 7px;background:rgba(9,16,36,.6);border-radius:8px;backdrop-filter:blur(4px)}
+.dot{width:6px;height:6px;background:#f3bc64;border-radius:50%;box-shadow:0 0 10px currentColor}.status.live .dot{background:#5ef6ad;box-shadow:0 0 10px #5ef6ad}.status.error .dot{background:#fb698a}
+.toast{position:fixed;z-index:7;top:44%;left:50%;transform:translate(-50%,-50%) scale(.94);text-align:center;white-space:normal;max-width:min(88vw,450px);font-weight:950;font-size:clamp(20px,5.4vw,35px);letter-spacing:.02em;text-shadow:0 3px 20px #000,0 0 28px #000;background:rgba(10,14,34,.82);padding:12px 20px;border-radius:16px;border:1px solid rgba(205,223,255,.2);box-shadow:0 12px 50px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .24s,transform .24s}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.settings{position:fixed;z-index:10;right:10px;top:calc(env(safe-area-inset-top) + 60px);width:min(355px,calc(100vw - 24px));background:rgba(10,17,39,.97);border:1px solid rgba(172,195,255,.23);border-radius:18px;padding:15px;box-shadow:0 20px 65px #0009;backdrop-filter:blur(14px);display:none;max-height:calc(100dvh - env(safe-area-inset-top) - 75px);overflow:auto}
+.settings.open{display:block}
+.settings h2{font-size:16px;margin:0 0 5px;font-weight:900}
+.settings p{color:#acbce3;font-size:12px;line-height:1.45;margin:0 0 12px}
+.inputline{display:flex;gap:6px;margin:9px 0}
+input[type=text]{background:#121e3b;min-width:0;flex:1;border:1px solid #38486f;border-radius:10px;padding:11px;color:#fff;font-size:13px;outline:none}
+input[type=text]:focus{border-color:#75dffa}
+.btn{border:0;border-radius:10px;color:#061221;background:#72e4ff;font-weight:900;font-size:12px;padding:10px 12px;cursor:pointer;white-space:nowrap}
+.btn.alt{background:#233154;color:#e2ecff;border:1px solid #47567e}
+.btn.warn{background:#5e263d;color:#ffdce7}
+.btnrow{display:flex;gap:7px;margin:10px 0}.btnrow .btn{flex:1}
+.settingline{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid rgba(255,255,255,.09);font-size:12px;color:#dce6ff}
+.settingline input[type=range]{width:112px;accent-color:#6de2ff}
+.small{font-size:11px;line-height:1.5;color:#92a6d5}.small strong{color:#e9f2ff}
+.hidden{display:none!important}
+@media(max-width:390px){.bottom{padding-left:7px;padding-right:7px}.team{padding:6px}.team-name{font-size:9px}.mini-stat{font-size:8px;padding:4px}.leadtitle{font-size:9px}}
+</style>
+</head>
+<body>
+<canvas id="field" aria-label="Canlı renk savaşı oyun alanı"></canvas><div class="screen-grain"></div>
+<div class="tools" aria-label="Oyun kontrolleri"><button id="fullscreen" class="round" title="Tam ekran" aria-label="Tam ekran">⛶</button><button id="gear" class="round" title="Oyun ayarları" aria-label="Oyun ayarları">⚙</button></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<footer class="bottom" aria-label="Oyun istatistikleri ve liderlik">
+  <div class="minihead">
+    <div class="leadtitle">🏆 EN ÇOK YAYILAN RENKLER</div>
+    <div class="compact-stats"><span class="mini-stat"><strong id="playerCount">0</strong> KİŞİ</span><span class="mini-stat"><strong id="factionCount">0</strong> RENK</span><span class="mini-stat"><strong id="convertCount">0</strong> DEĞİŞİM</span></div>
+  </div>
+  <div id="leaders" class="leaders"><div class="team"><div class="team-name">Yarış başladı!</div><div class="team-num">—</div></div></div>
+  <div id="status" class="status"><span class="dot"></span><span id="statusText">Bağlantı kontrol ediliyor...</span></div>
+</footer>
+<aside class="settings" id="settings">
+  <h2>⚙ Oyun kontrolü</h2>
+  <p>Canlı yayın yokken oyuncu ekleyip çarpışmaları test et. Her izleyici yalnızca bir kez katılır; tekrar yorum yazarsa kendi balonunda görünür.</p>
+  <div class="inputline"><input id="username" type="text" maxlength="30" placeholder="Kullanıcı adı yaz..." autocomplete="off"><button id="addUser" class="btn">EKLE</button></div>
+  <div class="btnrow"><button id="addDemo" class="btn alt">+15 TEST OYUNCUSU</button><button id="clear" class="btn warn">SIFIRLA</button></div>
+  <div class="settingline"><label for="speed">Hareket hızı</label><input id="speed" type="range" min="0.5" max="2" step="0.1" value="1"></div>
+  <div class="settingline"><label for="showNames">Kullanıcı adlarını göster</label><input id="showNames" type="checkbox" checked></div>
+  <p class="small"><strong>İsimler:</strong> Top sayısı artsa bile isimler otomatik kapanmaz. Etiketler topların üzerinde çizilir; çok kalabalıkta etiketler örtüşebilir.</p>
+  <p class="small"><strong>Çarpışma kuralı:</strong> Rakibine doğru daha güçlü hareket eden yuvarlak kendi rengini yayar. Toplar çarpışmadan sonra sekerek hareketine devam eder. Oyuncu adı değişmez, sadece takım rengi değişir.</p>
+  <p class="small"><strong>Renk kodları:</strong> İlk 65.536 kişinin başlangıç renk kodları birbirinden farklıdır. Çarpışmalardan sonra birden fazla top aynı renge dönüşebilir. Bazı renkler gözle birbirine yakın görünebilir.</p>
+  <p class="small"><strong>Gerçek yayın:</strong> GitHub/Render kurulumu ve <code>TIKTOK_USERNAME</code> ayarıyla canlı yorumlar otomatik gelir. Bağlantı olmadan bu dosya demo olarak çalışır.</p>
+</aside>
+<script>
+'use strict';
+(() => {
+ const canvas=document.getElementById('field'),ctx=canvas.getContext('2d',{alpha:false});
+ const $=id=>document.getElementById(id), settings=$('settings'), toastEl=$('toast');
+ const players=[],byId=new Map(),teamColors=new Map(),particles=[],nameSprites=new Map();
+ let w=innerWidth,h=innerHeight,dpr=1,seq=0,demoSeq=0,converts=0,speed=1,showNames=true;
+ let lastTime=performance.now(),lastStats=0,toastTimer=0, lastWin='',sse,live=false,configured=false,samplesInserted=false;
+ const names=['Deniz','Arda','Elif','Mert','Duru','Efe','Selin','Eylül','Burak','Asya','Can','Zeynep','Kaan','Sena','Ela','Bora','Defne','Alp','Yağmur','Cem','Öykü','Poyraz','Ada','Baran','Mina','Rüzgar'];
+ const rand=(a,b)=>a+Math.random()*(b-a),clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+ // İlk 65.536 farklı katılımcının başlangıç renk kodu eşsizdir.
+ // 25.031 tek sayı olduğundan 2^16 üzerindeki çarpma bir permütasyondur.
+ function hueColor(i){const slot=(((i-1)*25031+34218)%65536);const band=Math.floor((i-1)/65536);const hue=(slot*360/65536).toFixed(4);const sat=85+(band%11),light=55+(Math.floor(band/11)%13);return `hsl(${hue} ${sat}% ${light}%)`;}
+ function fieldBounds(){const pad=5;return {x:pad,y:pad,right:w-pad,bottom:h-pad};}
+ function radius(){let b=fieldBounds();return clamp(Math.sqrt((Math.max(200,w-20)*Math.max(200,b.bottom-b.y))/(Math.max(12,players.length)*7.3)),5.5,21)}
+ function resize(){let ow=w,oh=h;w=Math.max(240,innerWidth);h=Math.max(320,innerHeight);dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0);for(let p of players){p.x*=w/(ow||w);p.y*=h/(oh||h);}}
+ window.addEventListener('resize',resize,{passive:true});window.addEventListener('orientationchange',()=>setTimeout(resize,250));resize();
+ function showToast(text,ms=1900){toastEl.textContent=text;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),ms)}
+ function addPlayer(id,name,comment='',demo=false){id=String(id||'').trim();name=String(name||id).trim().slice(0,28);if(!id)return;
+  if(byId.has(id)){let p=byId.get(id);if(comment){p.comment=String(comment).slice(0,70);p.chatUntil=performance.now()+3300;}return;}
+  const b=fieldBounds(),r=radius();const angle=rand(0,Math.PI*2),velocity=rand(55,94),initial=(++seq);
+  const team=id+'#'+initial, color=hueColor(initial);teamColors.set(team,{color,name});
+  let p={id,name,team,originalTeam:team,x:rand(b.x+r,b.right-r),y:rand(b.y+r,b.bottom-r),vx:Math.cos(angle)*velocity,vy:Math.sin(angle)*velocity,r:r*.6,contactUntil:0,comment:String(comment||'').slice(0,70),chatUntil:comment?performance.now()+4200:0,bornAt:performance.now()};
+  players.push(p);byId.set(id,p);if(!demo && live && players.length<=5)showToast('🎨 '+name+' oyuna katıldı!');
+  if(players.length>1)lastWin='';return p;
+ }
+ function addBots(count){for(let i=0;i<count;i++){let index=demoSeq++,name=names[index%names.length]+(Math.floor(index/names.length)>0?' '+(1+Math.floor(index/names.length)):'');addPlayer('test:'+index,name,'',true)}updateStats();}
+ function reset(){players.length=0;byId.clear();teamColors.clear();particles.length=0;nameSprites.clear();seq=0;converts=0;lastWin='';updateStats();showToast('🎨 Yeni tur başladı!',1400)}
+ function setStatus(msg,kind){$('statusText').textContent=msg;$('status').className='status '+(kind||'');}
+ function updateStats(){const counts=new Map();for(const p of players)counts.set(p.team,(counts.get(p.team)||0)+1);
+  $('playerCount').textContent=players.length.toLocaleString('tr-TR');$('factionCount').textContent=counts.size.toLocaleString('tr-TR');$('convertCount').textContent=converts.toLocaleString('tr-TR');
+  const sorted=[...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,3),html=[];
+  for(let [team,n] of sorted){const t=teamColors.get(team),pct=Math.round(n/players.length*100);
+    let div=document.createElement('div');div.className='team';div.innerHTML=`<div class="team-head"><i class="team-swatch"></i><span class="team-name"></span></div><div class="team-num">${n} <small style="font-size:10px;color:#a7b7da">${pct}%</small></div><div class="team-bar"><div style="width:${pct}%"></div></div>`;
+    div.querySelector('.team-swatch').style.background=t.color;div.querySelector('.team-name').textContent='@'+t.name;div.querySelector('.team-bar div').style.background=t.color;html.push(div);
+  }
+  const el=$('leaders');el.replaceChildren(...html);if(!html.length)el.textContent='Yorum yazan ilk kişi rengini belirler!';
+  if(players.length>=2 && counts.size===1){const team=[...counts.keys()][0];if(lastWin!==team){lastWin=team;showToast('🏆 '+(teamColors.get(team)?.name||'Bir renk')+' TÜM RENKLERİ ELE GEÇİRDİ!',3800);}}}
+ function collision(a,b,now){let dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy)||.01,minDist=a.r+b.r;if(dist>=minDist)return;
+   let nx=dx/dist,ny=dy/dist,penetration=minDist-dist; a.x-=nx*penetration*.51;a.y-=ny*penetration*.51;b.x+=nx*penetration*.51;b.y+=ny*penetration*.51;
+   const approachA=a.vx*nx+a.vy*ny,approachB=-(b.vx*nx+b.vy*ny);
+   if(a.team!==b.team && now>a.contactUntil && now>b.contactUntil){const winner=Math.abs(approachA-approachB)<8?(Math.random()<.5?a:b):(approachA>approachB?a:b),loser=winner===a?b:a;
+     loser.team=winner.team;converts++;a.contactUntil=now+550;b.contactUntil=now+550;
+     let c=teamColors.get(winner.team)?.color||'#fff';for(let k=0;k<5&&particles.length<150;k++){let ang=rand(0,Math.PI*2);particles.push({x:loser.x,y:loser.y,vx:Math.cos(ang)*rand(18,60),vy:Math.sin(ang)*rand(18,60),life:rand(.3,.6),color:c});}
+   }
+   let along=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;
+   if(along>0){let impulse=along*.95;a.vx-=nx*impulse;a.vy-=ny*impulse;b.vx+=nx*impulse;b.vy+=ny*impulse;}
+ }
+ function simulate(dt,now){const b=fieldBounds(),rTarget=radius();for(let p of players){p.r+=(rTarget-p.r)*Math.min(1,dt*4);
+   let velocity=Math.hypot(p.vx,p.vy)||1;let desired=clamp(70*Math.sqrt(w/390),45,100)*speed;
+   p.vx+=((p.vx/velocity)*desired-p.vx)*Math.min(1,dt*.3);p.vy+=((p.vy/velocity)*desired-p.vy)*Math.min(1,dt*.3);
+   p.x+=p.vx*dt;p.y+=p.vy*dt;
+   if(p.x-p.r<b.x){p.x=b.x+p.r;p.vx=Math.abs(p.vx)}if(p.x+p.r>b.right){p.x=b.right-p.r;p.vx=-Math.abs(p.vx)}
+   if(p.y-p.r<b.y){p.y=b.y+p.r;p.vy=Math.abs(p.vy)}if(p.y+p.r>b.bottom){p.y=b.bottom-p.r;p.vy=-Math.abs(p.vy)}
+  }
+  const cellSize=Math.max(14,rTarget*2.2),grid=new Map();for(let i=0;i<players.length;i++){let p=players[i],x=Math.floor(p.x/cellSize),y=Math.floor(p.y/cellSize),key=x+','+y;let arr=grid.get(key);if(!arr){arr=[];grid.set(key,arr)}arr.push(i)}
+  for(let i=0;i<players.length;i++){let p=players[i],cx=Math.floor(p.x/cellSize),cy=Math.floor(p.y/cellSize);
+    for(let ox=-1;ox<=1;ox++)for(let oy=-1;oy<=1;oy++){let candidates=grid.get((cx+ox)+','+(cy+oy));if(!candidates)continue;for(let j of candidates){if(j>i)collision(p,players[j],now)}}}
+  for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.life<=0)particles.splice(i,1)}
+ }
+ // Kullanıcı adları doku olarak önbelleğe alınır; kalabalık yayınlarda telefonda akıcı çalışır.
+ function nameSprite(name, fontSize){
+   const display='@'+(name.length>13?name.slice(0,12)+'…':name),key=fontSize+'|'+display;
+   if(nameSprites.has(key))return nameSprites.get(key);
+   const c=document.createElement('canvas'),g=c.getContext('2d');
+   g.font='800 '+fontSize+'px system-ui';
+   const width=Math.ceil(g.measureText(display).width)+12,height=fontSize+10,scale=2;
+   c.width=width*scale;c.height=height*scale;g.scale(scale,scale);
+   g.font='800 '+fontSize+'px system-ui';g.textAlign='center';g.textBaseline='middle';
+   g.fillStyle='rgba(4,9,25,.9)';g.beginPath();g.roundRect(0,0,width,height,5);g.fill();
+   g.strokeStyle='rgba(190,214,255,.24)';g.lineWidth=.65;g.stroke();
+   g.fillStyle='#f6faff';g.fillText(display,width/2,height/2+.3);
+   const sprite={canvas:c,width,height};nameSprites.set(key,sprite);return sprite;
+ }
+ // Etiketler toplardan ve efektlerden SONRA çizilir: yeni bir top eski ismi kapatamaz.
+ // Yoğunlukta etiket konumları olabildiğince birbirinden uzak seçilir.
+ function drawNames(){
+   if(!showNames||players.length===0)return;
+   const count=players.length,fontSize=count>350?8:count>75?9:10;
+   const bounds=fieldBounds(),grid=new Map(),cell=32,placed=[];
+   const overlap=(x,y,iw,ih)=>{
+     const l=x-iw/2,r=x+iw/2,t=y-ih/2,b=y+ih/2;
+     const seen=new Set();let score=0;
+     for(let gx=Math.floor(l/cell);gx<=Math.floor(r/cell);gx++){
+       for(let gy=Math.floor(t/cell);gy<=Math.floor(b/cell);gy++){
+         const list=grid.get(gx+','+gy);if(!list)continue;
+         for(const j of list){if(seen.has(j))continue;seen.add(j);const o=placed[j];
+           score+=Math.max(0,Math.min(r,o.r)-Math.max(l,o.l))*Math.max(0,Math.min(b,o.b)-Math.max(t,o.t));
+         }
+       }
+     }
+     return score;
+   };
+   for(let i=0;i<count;i++){
+     const p=players[i],spr=nameSprite(p.name,fontSize);
+     const v=p.r+spr.height/2+3,hside=p.r+spr.width/2+3;
+     const anchors=[[p.x,p.y+v],[p.x,p.y-v],[p.x+hside,p.y],[p.x-hside,p.y],
+                    [p.x+spr.width*.36,p.y+v],[p.x-spr.width*.36,p.y-v]];
+     let best=null,bestScore=Infinity;
+     for(let a=0;a<anchors.length;a++){
+       const x=clamp(anchors[a][0],spr.width/2+2,w-spr.width/2-2);
+       const y=clamp(anchors[a][1],bounds.y+spr.height/2+2,bounds.bottom-spr.height/2-2);
+       const score=overlap(x,y,spr.width,spr.height)+a*.18;
+       if(score<bestScore){bestScore=score;best={x,y};if(score===0)break;}
+     }
+     const {x,y}=best;
+     ctx.drawImage(spr.canvas,x-spr.width/2,y-spr.height/2,spr.width,spr.height);
+     const rect={l:x-spr.width/2,r:x+spr.width/2,t:y-spr.height/2,b:y+spr.height/2};
+     const idx=placed.length;placed.push(rect);
+     for(let gx=Math.floor(rect.l/cell);gx<=Math.floor(rect.r/cell);gx++){
+       for(let gy=Math.floor(rect.t/cell);gy<=Math.floor(rect.b/cell);gy++){
+         const key=gx+','+gy;let list=grid.get(key);if(!list){list=[];grid.set(key,list)}list.push(idx);
+       }
+     }
+   }
+ }
+ function draw(now){const bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,'#080c1d');bg.addColorStop(.53,'#101634');bg.addColorStop(1,'#080d21');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+  // Durgun, çok hafif arka plan ızgarası
+  const gridSize=33;ctx.lineWidth=.65;ctx.strokeStyle='rgba(155,175,255,.045)';ctx.beginPath();for(let x=0;x<w;x+=gridSize){ctx.moveTo(x,0);ctx.lineTo(x,h)}for(let y=0;y<h;y+=gridSize){ctx.moveTo(0,y);ctx.lineTo(w,y)}ctx.stroke();
+  if(players.length===0){ctx.textAlign='center';ctx.fillStyle='rgba(184,206,255,.48)';ctx.font='700 15px system-ui';ctx.fillText('OYUNCULAR BEKLENİYOR...',w/2,h*.51);ctx.font='12px system-ui';ctx.fillText('İlk yorumla renk savaşı başlar',w/2,h*.51+25)}
+  for(let p of players){const c=teamColors.get(p.team)?.color||'#fff';
+    ctx.save();ctx.shadowColor=c;ctx.shadowBlur=players.length>260?5:13;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,2*Math.PI);ctx.fillStyle=c;ctx.fill();ctx.shadowBlur=0;
+    let shine=ctx.createRadialGradient(p.x-p.r*.32,p.y-p.r*.4,.3,p.x,p.y,p.r);shine.addColorStop(0,'rgba(255,255,255,.65)');shine.addColorStop(.42,'rgba(255,255,255,.12)');shine.addColorStop(1,'rgba(0,0,0,.18)');ctx.fillStyle=shine;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=players.length>200?.5:1;ctx.stroke();ctx.restore();
+    if(p.chatUntil>now && players.length<=70 && p.comment){let t=p.comment.slice(0,30),sz=10;ctx.font='700 '+sz+'px system-ui';let tw=Math.min(w*.7,ctx.measureText(t).width+17),cx=clamp(p.x,tw/2+6,w-tw/2-6),cy=p.y-p.r-23;ctx.fillStyle='rgba(9,17,39,.91)';ctx.beginPath();ctx.roundRect(cx-tw/2,cy-12,tw,22,7);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,cx,cy-1,tw-12)}
+  }
+  for(const p of particles){ctx.globalAlpha=clamp(p.life/.6,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,2.1,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
+  drawNames();
+ }
+ function frame(now){const dt=Math.min(.035,Math.max(0,(now-lastTime)/1000));lastTime=now;simulate(dt,now);draw(now);if(now-lastStats>550){lastStats=now;updateStats();}requestAnimationFrame(frame)}requestAnimationFrame(frame);
+ // TikTok canlı bağlantısı: node sunucusu aynı origin üzerinde SSE ile sohbet olaylarını iletir.
+ function connectEvents(){if(location.protocol==='file:'){setStatus('Demo modu • canlıya bağlı değil','');if(!samplesInserted){samplesInserted=true;addBots(12)}return;}
+  if(!('EventSource' in window)){setStatus('Tarayıcı canlı bağlantısını desteklemiyor','error');return;}
+  try{sse=new EventSource('/events');sse.onmessage=e=>{let data;try{data=JSON.parse(e.data)}catch{return};
+    if(data.type==='state'){configured=!!data.configured;live=data.status==='connected';if(live)setStatus('@'+data.username+' • CANLI SOHBET BAĞLI','live');else if(configured)setStatus('@'+data.username+' • '+(data.status==='connecting'?'bağlanıyor...':'yayın bekleniyor / yeniden deneniyor'),'');else{setStatus('Demo modu • TIKTOK_USERNAME ayarlanmadı','');if(!samplesInserted){samplesInserted=true;addBots(12)}}}
+    else if(data.type==='chat'){if(data.id){addPlayer(data.id,data.name||data.id,data.comment||'');}}
+    else if(data.type==='history'&&Array.isArray(data.events)){for(let ev of data.events){if(ev.id)addPlayer(ev.id,ev.name||ev.id,ev.comment||'')}updateStats();}
+  };sse.onerror=()=>{if(configured)setStatus('Sunucuya yeniden bağlanılıyor...','error');else setStatus('Demo • sunucu bağlantısı yok','error');};
+  }catch(e){setStatus('Demo • bağlantı kurulamadı','error');}
+ }
+ connectEvents();
+ $('gear').onclick=()=>{settings.classList.toggle('open');$('gear').textContent=settings.classList.contains('open')?'×':'⚙'};
+ $('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(e){showToast('Tarayıcıda tam ekran kullanılamıyor',1800)}};
+ function manuallyAdd(){let input=$('username'),name=input.value.trim().replace(/^@/,'');if(!name)return;addPlayer('manual:'+name.toLowerCase(),name);input.value='';updateStats()}
+ $('addUser').onclick=manuallyAdd;$('username').addEventListener('keydown',e=>{if(e.key==='Enter')manuallyAdd()});
+ $('addDemo').onclick=()=>addBots(15);$('clear').onclick=reset;
+ $('speed').oninput=e=>{speed=Number(e.target.value)||1};$('showNames').onchange=e=>{showNames=e.target.checked};
+ document.addEventListener('visibilitychange',()=>{lastTime=performance.now()});
+})();
+</script>
+</body>
+</html>
