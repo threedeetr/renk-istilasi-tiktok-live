@@ -31,7 +31,7 @@ async function connectTikTok() {
   updateStatus('connecting');
   try {
     if (connection) { try { connection.removeAllListeners(); await connection.disconnect(); } catch {} }
-    const next = new TikTokLiveConnection(USERNAME);
+    const next = new TikTokLiveConnection(USERNAME, {});
     connection = next;
     next.on(WebcastEvent.CHAT, data => {
       const user=data.user || {};
